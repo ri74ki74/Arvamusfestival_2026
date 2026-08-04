@@ -10,7 +10,7 @@ _Default_ parameetrid on:
 4) maksimaalne kõnnitav distants peatuste vahel: 5 km
 5) kõndimiskiirus: 5 km/h
 6) maksimaalne ümberistumiste arv: 2
-7) kõige varajasem väljumine: 08:00
+7) kõige varajasem väljumine: 07:00
 8) üheks koondatud peatuste (klastrite) raadius: 7.5 km
 
 Kõiki parameetreid saab _constants.py_ failis muuta. Lisaks on võimalik muuta ka sihtkohta(sid), aga selleks tuleb leida vastavate peatuse id-d.
