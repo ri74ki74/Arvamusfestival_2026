@@ -1,0 +1,16 @@
+# Data
+estonia_unified_gtfs/
+
+# Old version, kept locally only
+version_1/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Generated output
+*.html
+
+# OS
+.DS_Store
