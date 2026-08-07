@@ -45,7 +45,14 @@ def reach_to_dataframe(
         for stop_id, latest_sec in reach.items()
         if stop_id in dummy_stops
     ]
-    df = pd.DataFrame(rows)
+    columns = [
+        "stop_id", "name", "lat", "lon",
+        "latest_departure_sec", "latest_departure_hours", "latest_departure",
+        "extent_m",
+    ]
+    df = pd.DataFrame(rows, columns=columns)  # keeps these columns even if rows is empty
+    numeric_columns = ["lat", "lon", "latest_departure_sec", "latest_departure_hours", "extent_m"]
+    df[numeric_columns] = df[numeric_columns].astype(float)  # empty rows default to object dtype otherwise
     return df.sort_values("latest_departure_sec", ascending=False).reset_index(
         drop=True
     )
@@ -97,7 +104,16 @@ def _coverage_circles_trace(df: pd.DataFrame):
     )
 
 
-def build_map(df: pd.DataFrame):
+def build_map(
+    df: pd.DataFrame,
+    color_range: tuple[float, float] | None = None,
+    center: dict | None = None,
+):
+    """color_range and center let callers pin the color scale and map
+    framing to fixed values — e.g. an animation across many frames should
+    use the same scale/framing throughout, not let each frame re-derive
+    it from just its own (shrinking) set of points.
+    """
     df = df.copy()
     df["coordinates"] = (
         df["lat"].round(5).astype(str) + ", " + df["lon"].round(5).astype(str)
@@ -124,6 +140,8 @@ def build_map(df: pd.DataFrame):
             "coordinates": "Koordinaadid",
         },
         color_continuous_scale="Viridis",
+        range_color=color_range,
+        center=center,
         zoom=6,
         height=700,
         title="Hiliseim väljumine, et jõuda Paidesse/Türisse valitud kellaajaks.",
@@ -136,8 +154,12 @@ def build_map(df: pd.DataFrame):
     fig.add_trace(_coverage_circles_trace(df))
     fig.data = (fig.data[-1], *fig.data[:-1])  # circles first = drawn on the bottom
 
-    tick_start = math.floor(df["latest_departure_hours"].min())
-    tick_end = math.ceil(df["latest_departure_hours"].max())
+    range_min, range_max = color_range or (
+        df["latest_departure_hours"].min(),
+        df["latest_departure_hours"].max(),
+    )
+    tick_start = math.floor(range_min)
+    tick_end = math.ceil(range_max)
     tickvals = list(range(tick_start, tick_end + 1))
     fig.update_coloraxes(
         colorbar_title_text="Viimane väljumisaeg",
